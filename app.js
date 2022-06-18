@@ -12,15 +12,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
-  useUnifiedTopology: true
-  }, err => {
-    if(err) throw err;
-    console.log('Connected to MongoDB!!!')
+  useUnifiedTopology: true,
+}, (err) => {
+  if (err) throw err;
+  console.log('Connected to MongoDB!!!');
 });
-//Захардкодили идентификатор пользователя для добавления owner в card (временное решение)
+// Захардкодили идентификатор пользователя для добавления owner в card (временное решение)
 app.use((req, res, next) => {
   req.user = {
-    _id: '62ac615d058b5eeea1753e2e'
+    _id: '62ac615d058b5eeea1753e2e',
   };
   next();
 });
