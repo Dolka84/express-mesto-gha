@@ -1,22 +1,38 @@
 const User = require('../models/user');
+// блок констант ошибок
+const BAD_REQ = {code: 400, message: 'Переданы некорректные данные при создании пользователя'};
+const NOT_FOUND = {code: 404, message: 'Пользователь по указанному _id не найден'};
+const SOME_ERROR = {code: 500, message: 'Ошибка по-умолчанию'};;
 
 module.exports.getUser = (req, res) => {
   User.find({})
     .then(user => res.send({ data: user }))
-    .catch(err => res.status(500).send({ message: err.message }));
+    .catch(err => res.status(SOME_ERROR.code).send(SOME_ERROR.message));
 };
 
 module.exports.getUserByID = (req, res) => {
   User.findById(req.params.userId)
-    .then(user => res.send({ data: user }))
-    .catch(err => res.status(500).send({ message: err.message }))
+    .then(user => {
+      if(!user) {
+        res.status(NOT_FOUND.code).send(NOT_FOUND.message)
+        return
+      }
+      res.send({ data: user })
+    })
+    .catch(err => res.status(SOME_ERROR.code).send(SOME_ERROR.message))
 }
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then(user => res.send({ data: user }))
-    .catch(err => res.status(500).send({ message: err.message }));
+    .catch(err => {
+      if(err.name === 'ValidationError') {
+        res.status(BAD_REQ.code).send(BAD_REQ.message)
+        return
+      }
+      res.status(SOME_ERROR.code).send(SOME_ERROR.message)
+    })
 }
 
 module.exports.updateUser = (req, res) => {
@@ -26,8 +42,20 @@ module.exports.updateUser = (req, res) => {
     { name, about },
     {new: true, runValidators: true, upsert: false}
     )
-    .then(user => res.send({ data: user }))
-    .catch(err => res.status(500).send({ message: err.message }));
+    .then(user => {
+      if(!user) {
+        res.status(NOT_FOUND.code).send(NOT_FOUND.message)
+        return
+      }
+      res.send({ data: user })
+    })
+    .catch(err => {
+      if(err.name === 'ValidationError') {
+        res.status(BAD_REQ.code).send(BAD_REQ.message)
+        return
+      }
+      res.status(SOME_ERROR.code).send(SOME_ERROR.message)
+    })
 }
 
 module.exports.updateAvatar = (req, res) => {
@@ -37,6 +65,18 @@ module.exports.updateAvatar = (req, res) => {
     { avatar } ,
     {new: true, runValidators: true, upsert: false}
     )
-    .then(user => res.send({ data: user }))
-    .catch(err => res.status(500).send({ message: err.message }));
+    .then(user => {
+      if(!user) {
+        res.status(NOT_FOUND.code).send(NOT_FOUND.message)
+        return
+      }
+      res.send({ data: user })
+    })
+    .catch(err => {
+      if(err.name === 'ValidationError') {
+        res.status(BAD_REQ.code).send(BAD_REQ.message)
+        return
+      }
+      res.status(SOME_ERROR.code).send(SOME_ERROR.message)
+    })
 }
