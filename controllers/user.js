@@ -6,32 +6,38 @@ const SOME_ERROR = { code: 500, message: 'Ошибка по-умолчанию' 
 
 module.exports.getUser = (req, res) => {
   User.find({})
-    .then((user) => res.send({ data: user }))
-    .catch(() => res.status(SOME_ERROR.code).send(SOME_ERROR.message));
+    .then((user) => res.status(200).send({ data: user }))
+    .catch(() => res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message }));
 };
 
 module.exports.getUserByID = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND.code).send(NOT_FOUND.message);
+        res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
         return;
       }
-      res.send({ data: user });
+      res.status(200).send({ data: user });
     })
-    .catch(() => res.status(SOME_ERROR.code).send(SOME_ERROR.message));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(BAD_REQ.code).send({ message: BAD_REQ.message });
+        return;
+      }
+      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+    });
 };
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQ.code).send(BAD_REQ.message);
+        res.status(BAD_REQ.code).send({ message: BAD_REQ.message });
         return;
       }
-      res.status(SOME_ERROR.code).send(SOME_ERROR.message);
+      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
     });
 };
 
@@ -44,17 +50,17 @@ module.exports.updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND.code).send(NOT_FOUND.message);
+        res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
         return;
       }
-      res.send({ data: user });
+      res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQ.code).send(BAD_REQ.message);
+        res.status(BAD_REQ.code).send({ message: BAD_REQ.message });
         return;
       }
-      res.status(SOME_ERROR.code).send(SOME_ERROR.message);
+      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
     });
 };
 
@@ -67,16 +73,16 @@ module.exports.updateAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND.code).send(NOT_FOUND.message);
+        res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
         return;
       }
-      res.send({ data: user });
+      res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQ.code).send(BAD_REQ.message);
+        res.status(BAD_REQ.code).send({ message: BAD_REQ.message });
         return;
       }
-      res.status(SOME_ERROR.code).send(SOME_ERROR.message);
+      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
     });
 };
