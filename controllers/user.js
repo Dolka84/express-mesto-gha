@@ -2,7 +2,7 @@ const User = require('../models/user');
 // блок констант ошибок
 const BAD_REQ = {code: 400, message: 'Переданы некорректные данные при создании пользователя'};
 const NOT_FOUND = {code: 404, message: 'Пользователь по указанному _id не найден'};
-const SOME_ERROR = {code: 500, message: 'Ошибка по-умолчанию'};;
+const SOME_ERROR = {code: 500, message: 'Ошибка по-умолчанию'};
 
 module.exports.getUser = (req, res) => {
   User.find({})
