@@ -13,6 +13,7 @@ module.exports.getUser = (req, res) => {
 module.exports.getUserByID = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => {
+      console.log('user', user);
       if (!user) {
         res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
         return;
@@ -20,6 +21,7 @@ module.exports.getUserByID = (req, res) => {
       res.status(200).send({ data: user });
     })
     .catch((err) => {
+      console.log('Логирование', err.name, err.message);
       if (err.name === 'ValidationError') {
         res.status(BAD_REQ.code).send({ message: BAD_REQ.message });
         return;

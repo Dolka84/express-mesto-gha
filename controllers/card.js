@@ -6,8 +6,8 @@ const SOME_ERROR = { code: 500, message: 'Ошибка по-умолчанию' 
 
 module.exports.getCard = (req, res) => {
   Card.find({})
-    .populate('owner')
-    .then((card) => res.status(200).send({ card }))
+    // .populate('owner')
+    .then((cards) => res.status(200).send({ cards }))
     .catch(() => res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message }));
 };
 
@@ -50,7 +50,10 @@ module.exports.setLikeCard = (req, res) => {
       }
       res.status(200).send({ card });
     })
-    .catch(() => res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message }));
+    .catch((err) => {
+      console.log('error', err.name, err.message);
+      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+    });
 };
 
 module.exports.deleteLikeCard = (req, res) => {
