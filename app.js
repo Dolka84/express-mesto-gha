@@ -29,7 +29,7 @@ app.use((req, res, next) => {
 app.use('/', routerUser);
 app.use('/', routerCard);
 app.use('*', (req, res) => {
-  res.status(NOT_FOUND).send({ message: NOT_FOUND.message });
+  res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
 });
 
 app.listen(PORT, () => {
