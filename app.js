@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const routerUser = require('./routes/user');
 const routerCard = require('./routes/card');
+const { NOT_FOUND } = require('./error');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -27,6 +28,9 @@ app.use((req, res, next) => {
 
 app.use('/', routerUser);
 app.use('/', routerCard);
+app.use('*', (req, res) => {
+  res.status(NOT_FOUND).send({ message: NOT_FOUND.message });
+});
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);

@@ -1,8 +1,9 @@
 const Card = require('../models/card');
-// блок констант ошибок
-const BAD_REQ = { code: 400, message: 'Переданы некорректные данные при создании карточки', messageLike: 'Переданы некорректные данные для постановки/снятии лайка' };
-const NOT_FOUND = { code: 404, message: 'Карточка с указанным _id не найдена', messageLike: 'Передан несуществующий _id карточки' };
-const SOME_ERROR = { code: 500, message: 'Ошибка по-умолчанию' };
+const {
+  BAD_REQ,
+  NOT_FOUND,
+  SOME_ERROR,
+} = require('../error');
 
 module.exports.getCard = (req, res) => {
   Card.find({})
@@ -18,7 +19,7 @@ module.exports.createCard = (req, res) => {
     .then((card) => res.status(200).send({ card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQ.code).send({ message: BAD_REQ.message });
+        res.status(BAD_REQ.code).send({ message: BAD_REQ.messageCard });
         return;
       }
       res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
@@ -29,12 +30,18 @@ module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
+        res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageCard });
         return;
       }
       res.status(200).send({ card });
     })
-    .catch(() => res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(BAD_REQ.code).send({ message: BAD_REQ.messageCard });
+        return;
+      }
+      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+    });
 };
 
 module.exports.setLikeCard = (req, res) => {
@@ -51,7 +58,10 @@ module.exports.setLikeCard = (req, res) => {
       res.status(200).send({ card });
     })
     .catch((err) => {
-      console.log('error', err.name, err.message);
+      if (err.name === 'CastError') {
+        res.status(BAD_REQ.code).send({ message: BAD_REQ.messageLike });
+        return;
+      }
       res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
     });
 };
@@ -69,5 +79,11 @@ module.exports.deleteLikeCard = (req, res) => {
       }
       res.status(200).send({ card });
     })
-    .catch(() => res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(BAD_REQ.code).send({ message: BAD_REQ.messageLike });
+        return;
+      }
+      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+    });
 };
