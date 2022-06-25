@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const routerUser = require('./routes/user');
 const routerCard = require('./routes/card');
 const { NOT_FOUND } = require('./error');
+const { login, createUser } = require('./controllers/user');
+require('dotenv').config();
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -26,6 +28,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.post('/signin', login);
+app.post('/signup', createUser);
 app.use('/', routerUser);
 app.use('/', routerCard);
 app.use('*', (req, res) => {
