@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const User = require('../models/user');
 const {
@@ -9,9 +8,11 @@ const {
   SOME_ERROR,
   MONGO_DUPLICATE,
 } = require('../error');
+const { generateToken } = require('../helpers/jwt');
+
 require('dotenv').config();
 
-const { NODE_ENV, JWT_SECRET, SALT_ROUND } = process.env;
+const { SALT_ROUND = 10 } = process.env;
 
 module.exports.getUser = (req, res) => {
   User.find({})
@@ -73,7 +74,6 @@ module.exports.createUser = (req, res) => {
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
-    req.user._id, // временное решение авторизации (req.user._id)
     { name, about },
     { new: true, runValidators: true, upsert: false },
   )
@@ -96,7 +96,7 @@ module.exports.updateUser = (req, res) => {
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
-    req.user._id, // временное решение авторизации (req.user._id)
+    req.user._id,
     { avatar },
     { new: true, runValidators: true, upsert: false },
   )
@@ -120,7 +120,7 @@ module.exports.login = (req, res) => {
     const { email, password } = req.body;
     return User.findUserByCredentials(email, password)
       .then((user) => {
-        const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' }); // срок токена 7 дней
+        const token = generateToken({ _id: user._id });
         res.cookie('jwt', token, {
           maxAge: 3600000 * 24 * 7, // срок куки 7 дней
           httpOnly: true,

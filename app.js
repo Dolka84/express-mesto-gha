@@ -21,13 +21,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   if (err) throw err;
   console.log('Connected to MongoDB!!!');
 });
-// // Захардкодили идентификатор пользователя для добавления owner в card (временное решение)
-// app.use((req, res, next) => {
-//   req.user = {
-//     _id: '62ac615d058b5eeea1753e2e',
-//   };
-//   next();
-// });
 
 app.post('/signin', login);
 app.post('/signup', createUser);
@@ -38,7 +31,22 @@ app.use('/', routerCard);
 app.use('*', (req, res) => {
   res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
 });
-
+app.use((err, req, res, next) => {
+  console.log(err);
+  // если у ошибки нет статуса, выставляем 500
+  const { statusCode = 500, message } = err;
+  res
+    .status(statusCode)
+    .send({
+    // проверяем статус и выставляем сообщение в зависимости от него
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
+  if (statusCode === 500) {
+    console.log(err.stack);
+  }
+});
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });

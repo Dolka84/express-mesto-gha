@@ -1,9 +1,8 @@
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-require('dotenv').config();
+const { isTokenValid } = require('../helpers/jwt');
 
-const { JWT_SECRET } = process.env;
-
+// eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
   // достаём авторизационный заголовок
   const { authorization } = req.headers;
@@ -17,20 +16,19 @@ module.exports = (req, res, next) => {
   let payload;
   try {
     // попытаемся верифицировать токен
-    payload = jwt.verify(token, JWT_SECRET);
+    payload = isTokenValid(token);
 
     User.findOne({ _id: payload._id })
+      // eslint-disable-next-line consistent-return
       .then((user) => {
         if (!user) {
           return res.status(401).send({ message: 'Авторизуйтесь для доступа' });
         }
-        console.log(user._id);
         req.user = { _id: user._id };
         next();
       });
   } catch (err) {
     // отправим ошибку, если не получилось
-    console.log(err);
     return res.status(401).send({ message: 'Необходима авторизация' });
   }
 };
