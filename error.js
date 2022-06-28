@@ -7,8 +7,11 @@ const NOT_FOUND = {
 };
 const SOME_ERROR = { code: 500, message: 'Ошибка по-умолчанию' };
 
+const MONGO_DUPLICATE = { code: 409, message: 'Email уже занят' };
+
 module.exports = {
   BAD_REQ,
   NOT_FOUND,
   SOME_ERROR,
+  MONGO_DUPLICATE,
 };

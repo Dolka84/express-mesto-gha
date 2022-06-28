@@ -1,17 +1,26 @@
 /* eslint-disable max-len */
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
 const User = require('../models/user');
 const {
   BAD_REQ,
   NOT_FOUND,
   SOME_ERROR,
+  MONGO_DUPLICATE,
 } = require('../error');
+require('dotenv').config();
 
-const { NODE_ENV, JWT_SECRET } = process.env;
+const { NODE_ENV, JWT_SECRET, SALT_ROUND } = process.env;
 
 module.exports.getUser = (req, res) => {
   User.find({})
+    .then((user) => res.status(200).send({ data: user }))
+    .catch(() => res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message }));
+};
+
+module.exports.getProfileUser = (req, res) => {
+  User.find(req.user._id)
     .then((user) => res.status(200).send({ data: user }))
     .catch(() => res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message }));
 };
@@ -35,21 +44,30 @@ module.exports.getUserByID = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
-  bcrypt.hash(password, 10)
-    .then((hash) => User.create({
-      name, about, avatar, email, hash,
-    }))
-    .then((user) => res.status(200).send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
-        return;
-      }
-      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
-    });
+  if (validator.isEmail(req.body.email)) {
+    const {
+      name, about, avatar, email, password,
+    } = req.body;
+    bcrypt
+      .hash(password, SALT_ROUND)
+      .then((hash) => User.create({
+        name, about, avatar, email, password: hash,
+      }))
+      .then((user) => res.status(200).send({ data: user }))
+      .catch((err) => {
+        if (err.code === 11000) {
+          res.status(MONGO_DUPLICATE.code).send({ message: MONGO_DUPLICATE.message });
+          return;
+        }
+        if (err.name === 'ValidationError') {
+          res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
+          return;
+        }
+        res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+      });
+    return;
+  }
+  res.status(400).send({ message: 'Invalid Email' });
 };
 
 module.exports.updateUser = (req, res) => {
@@ -98,17 +116,21 @@ module.exports.updateAvatar = (req, res) => {
     });
 };
 module.exports.login = (req, res) => {
-  const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' }); // срок токена 7 дней
-      res.cookie('jwt', token, {
-        maxAge: 3600000 * 24 * 7, // срок куки 7 дней
-        httpOnly: true,
+  if (validator.isEmail(req.body.email)) {
+    const { email, password } = req.body;
+    return User.findUserByCredentials(email, password)
+      .then((user) => {
+        const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' }); // срок токена 7 дней
+        res.cookie('jwt', token, {
+          maxAge: 3600000 * 24 * 7, // срок куки 7 дней
+          httpOnly: true,
+        });
+        console.log(token);
+        res.send({ message: 'Проверка прошла успешно!' });
+      })
+      .catch((err) => {
+        res.status(401).send({ message: err.message });
       });
-      res.send({ message: 'Проверка прошла успешно!' });
-    })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+  }
+  return res.status(400).send({ message: 'Invalid Email' });
 };

@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const auth = require('./middlewares/auth');
 const routerUser = require('./routes/user');
 const routerCard = require('./routes/card');
 const { NOT_FOUND } = require('./error');
@@ -20,16 +21,18 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   if (err) throw err;
   console.log('Connected to MongoDB!!!');
 });
-// Захардкодили идентификатор пользователя для добавления owner в card (временное решение)
-app.use((req, res, next) => {
-  req.user = {
-    _id: '62ac615d058b5eeea1753e2e',
-  };
-  next();
-});
+// // Захардкодили идентификатор пользователя для добавления owner в card (временное решение)
+// app.use((req, res, next) => {
+//   req.user = {
+//     _id: '62ac615d058b5eeea1753e2e',
+//   };
+//   next();
+// });
 
 app.post('/signin', login);
 app.post('/signup', createUser);
+// авторизация
+app.use(auth);
 app.use('/', routerUser);
 app.use('/', routerCard);
 app.use('*', (req, res) => {
