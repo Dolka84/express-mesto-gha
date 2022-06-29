@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const auth = require('./middlewares/auth');
 const routerUser = require('./routes/user');
 const routerCard = require('./routes/card');
-const { NOT_FOUND } = require('./error');
+const NotFoundError = require('./errors/not-found-err');
 const { login, createUser } = require('./controllers/user');
 require('dotenv').config();
 
@@ -29,12 +29,14 @@ app.use(auth);
 app.use('/', routerUser);
 app.use('/', routerCard);
 app.use('*', (req, res) => {
-  res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
+  // res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
+  throw new NotFoundError('Страница не найдена');
 });
 app.use((err, req, res, next) => {
   console.log(err);
   // если у ошибки нет статуса, выставляем 500
   const { statusCode = 500, message } = err;
+  console.log('message', err.message);
   res
     .status(statusCode)
     .send({

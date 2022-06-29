@@ -2,49 +2,50 @@
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const User = require('../models/user');
-const {
-  BAD_REQ,
-  NOT_FOUND,
-  SOME_ERROR,
-  MONGO_DUPLICATE,
-} = require('../error');
 const { generateToken } = require('../helpers/jwt');
 
 require('dotenv').config();
 
 const { SALT_ROUND = 10 } = process.env;
+const BadRequestError = require('../errors/bad-request-err');
+const NotFoundError = require('../errors/bad-request-err');
+const MongoDuplicateError = require('../errors/mongo-duplicate-error');
+const AuthorizationError = require('../errors/auth-err');
 
-module.exports.getUser = (req, res) => {
+module.exports.getUser = (req, res, next) => {
   User.find({})
     .then((user) => res.status(200).send({ data: user }))
-    .catch(() => res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message }));
+    .catch(next);
 };
 
-module.exports.getProfileUser = (req, res) => {
+module.exports.getProfileUser = (req, res, next) => {
   User.find(req.user._id)
     .then((user) => res.status(200).send({ data: user }))
-    .catch(() => res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message }));
+    .catch(next);
 };
 
-module.exports.getUserByID = (req, res) => {
+module.exports.getUserByID = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageUser });
-        return;
+        // res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageUser });
+        // return;
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
       res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
-        return;
+        // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
+        // return;
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
-      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+      next(err);
+      // res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   if (validator.isEmail(req.body.email)) {
     const {
       name, about, avatar, email, password,
@@ -57,21 +58,24 @@ module.exports.createUser = (req, res) => {
       .then((user) => res.status(200).send({ data: user }))
       .catch((err) => {
         if (err.code === 11000) {
-          res.status(MONGO_DUPLICATE.code).send({ message: MONGO_DUPLICATE.message });
-          return;
+          // res.status(MONGO_DUPLICATE.code).send({ message: MONGO_DUPLICATE.message });
+          // return;
+          throw new MongoDuplicateError(MongoDuplicateError.message);
         }
         if (err.name === 'ValidationError') {
-          res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
-          return;
+          // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
+          // return;
+          throw new BadRequestError('Переданы некорректные данные при создании пользователя');
         }
-        res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+        next();
       });
     return;
   }
-  res.status(400).send({ message: 'Invalid Email' });
+  // res.status(400).send({ message: 'Invalid Email' });
+  throw new BadRequestError('Некорректно указан Email');
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     { name, about },
@@ -79,21 +83,22 @@ module.exports.updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageUser });
-        return;
+        // res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageUser });
+        // return;
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
       res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
-        return;
+        // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
+        throw new BadRequestError('Переданы некорректные данные при создании пользователя');
       }
-      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+      next();
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -102,17 +107,20 @@ module.exports.updateAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageUser });
-        return;
+        // res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageUser });
+        // return;
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
       res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
-        return;
+        // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
+        // return;
+        throw new BadRequestError('Переданы некорректные данные при создании пользователя');
       }
-      res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+      // res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
+      next();
     });
 };
 module.exports.login = (req, res) => {
@@ -128,9 +136,11 @@ module.exports.login = (req, res) => {
         console.log(token);
         res.send({ message: 'Проверка прошла успешно!' });
       })
-      .catch((err) => {
-        res.status(401).send({ message: err.message });
+      .catch(() => {
+        // res.status(401).send({ message: err.message });
+        throw new AuthorizationError(AuthorizationError.message);
       });
   }
-  return res.status(400).send({ message: 'Invalid Email' });
+  // return res.status(400).send({ message: 'Invalid Email' });
+  throw new BadRequestError('Некорректно указан Email');
 };

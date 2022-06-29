@@ -1,6 +1,7 @@
 // const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { isTokenValid } = require('../helpers/jwt');
+const AuthorizationError = require('../errors/auth-err');
 
 // eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
@@ -9,7 +10,8 @@ module.exports = (req, res, next) => {
 
   // убеждаемся, что он есть или начинается с Bearer
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    return res.status(401).send({ message: 'Необходима авторизация' });
+    // return res.status(401).send({ message: 'Необходима авторизация' });
+    throw new AuthorizationError(AuthorizationError.message);
   }
   const token = authorization.replace('Bearer ', '');
   // верифицируем токен
@@ -22,13 +24,13 @@ module.exports = (req, res, next) => {
       // eslint-disable-next-line consistent-return
       .then((user) => {
         if (!user) {
-          return res.status(401).send({ message: 'Авторизуйтесь для доступа' });
+          throw new AuthorizationError(AuthorizationError.message);
         }
-        req.user = { _id: user._id };
+        req.user = { _id: user._id.toString() };
         next();
       });
   } catch (err) {
     // отправим ошибку, если не получилось
-    return res.status(401).send({ message: 'Необходима авторизация' });
+    throw new AuthorizationError(AuthorizationError.message);
   }
 };
