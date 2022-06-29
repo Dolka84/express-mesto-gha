@@ -92,9 +92,9 @@ module.exports.updateUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
-        throw new BadRequestError('Переданы некорректные данные при создании пользователя');
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
-      next();
+      next(err);
     });
 };
 
@@ -117,13 +117,13 @@ module.exports.updateAvatar = (req, res, next) => {
       if (err.name === 'ValidationError') {
         // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
         // return;
-        throw new BadRequestError('Переданы некорректные данные при создании пользователя');
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
       // res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
-      next();
+      next(err);
     });
 };
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   if (validator.isEmail(req.body.email)) {
     const { email, password } = req.body;
     return User.findUserByCredentials(email, password)
@@ -138,7 +138,7 @@ module.exports.login = (req, res) => {
       })
       .catch(() => {
         // res.status(401).send({ message: err.message });
-        throw new AuthorizationError(AuthorizationError.message);
+        next(new AuthorizationError(AuthorizationError.message));
       });
   }
   // return res.status(400).send({ message: 'Invalid Email' });
