@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { celebrate, Joi, errors } = require('celebrate');
 const auth = require('./middlewares/auth');
 const routerUser = require('./routes/user');
 const routerCard = require('./routes/card');
@@ -22,16 +23,38 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   console.log('Connected to MongoDB!!!');
 });
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(4),
+  }),
+  query: Joi.object().keys({
+    token: Joi.string().token().required(),
+  }),
+}), login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().$_compilemin(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string(),
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(4),
+  }),
+}), createUser);
 // авторизация
-app.use(auth);
+app.use(celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string().required().regex(/abc\d{3}/),
+  }),
+}), auth);
 app.use('/', routerUser);
 app.use('/', routerCard);
-app.use('*', (req, res) => {
+app.use('*', () => {
   // res.status(NOT_FOUND.code).send({ message: NOT_FOUND.message });
   throw new NotFoundError('Страница не найдена');
 });
+app.use(errors()); // обработчик ошибок celebrate
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.log(err);
   // если у ошибки нет статуса, выставляем 500
