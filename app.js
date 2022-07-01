@@ -42,11 +42,7 @@ app.post('/signup', celebrate({
   }),
 }), createUser);
 // авторизация
-app.use(celebrate({
-  headers: Joi.object().keys({
-    authorization: Joi.string().required().regex(/abc\d{3}/),
-  }),
-}), auth);
+app.use(auth);
 app.use('/', routerUser);
 app.use('/', routerCard);
 app.use('*', () => {

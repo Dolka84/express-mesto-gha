@@ -31,6 +31,7 @@ module.exports = (req, res, next) => {
       });
   } catch (err) {
     // отправим ошибку, если не получилось
-    next(new AuthorizationError(AuthorizationError.message));
+    // next(new AuthorizationError(AuthorizationError.message));
+    next(err);
   }
 };
