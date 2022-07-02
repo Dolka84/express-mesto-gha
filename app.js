@@ -26,11 +26,11 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(4),
+    password: Joi.string().required().min(3),
   }),
-  query: Joi.object().keys({
-    token: Joi.string().token().required(),
-  }),
+  // query: Joi.object().keys({
+  //   token: Joi.string().token().required(),
+  // }),
 }), login);
 app.post('/signup', celebrate({
   body: Joi.object().keys({
@@ -38,7 +38,7 @@ app.post('/signup', celebrate({
     about: Joi.string().min(2).max(30),
     avatar: Joi.string(),
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(4),
+    password: Joi.string().required().min(3),
   }),
 }), createUser);
 // авторизация

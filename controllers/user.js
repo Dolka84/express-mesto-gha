@@ -64,19 +64,19 @@ module.exports.createUser = (req, res, next) => {
         if (err.code === 11000) {
           // res.status(MONGO_DUPLICATE.code).send({ message: MONGO_DUPLICATE.message });
           // return;
-          throw new MongoDuplicateError(MongoDuplicateError.message);
+          next(new MongoDuplicateError(MongoDuplicateError.message));
         }
         if (err.name === 'ValidationError') {
           // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
           // return;
-          throw new BadRequestError('Переданы некорректные данные при создании пользователя');
+          next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
         }
-        next();
+        next(err);
       });
-    return;
-  }
+  } else {
   // res.status(400).send({ message: 'Invalid Email' });
-  throw new BadRequestError('Некорректно указан Email');
+    throw new BadRequestError('Некорректно указан Email');
+  }
 };
 
 module.exports.updateUser = (req, res, next) => {
