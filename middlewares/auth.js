@@ -1,9 +1,7 @@
-// const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { isTokenValid } = require('../helpers/jwt');
 const AuthorizationError = require('../errors/auth-err');
 
-// eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
   // достаём авторизационный заголовок
   const { authorization } = req.headers;
@@ -19,7 +17,6 @@ module.exports = (req, res, next) => {
     // попытаемся верифицировать токен
     payload = isTokenValid(token);
     User.findOne({ _id: payload._id })
-      // eslint-disable-next-line consistent-return
       .then((user) => {
         if (!user) {
           throw new AuthorizationError(AuthorizationError.message);

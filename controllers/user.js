@@ -57,7 +57,9 @@ module.exports.createUser = (req, res, next) => {
       .then((hash) => User.create({
         name, about, avatar, email, password: hash,
       }))
-      .then((user) => res.status(200).send({ name: user.name, about: user.about, email: user.email, avatar: user.avatar }))
+      .then((user) => res.status(200).send({
+        name: user.name, about: user.about, email: user.email, avatar: user.avatar,
+      }))
       .catch((err) => {
         if (err.code === 11000) {
           // res.status(MONGO_DUPLICATE.code).send({ message: MONGO_DUPLICATE.message });
