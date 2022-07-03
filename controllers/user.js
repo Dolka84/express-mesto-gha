@@ -111,19 +111,14 @@ module.exports.updateAvatar = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        // res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageUser });
-        // return;
         throw new NotFoundError('Пользователь по указанному _id не найден');
       }
       res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
-        // return;
         next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
-      // res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
       next(err);
     });
 };
@@ -137,14 +132,11 @@ module.exports.login = (req, res, next) => {
           maxAge: 3600000 * 24 * 7, // срок куки 7 дней
           httpOnly: true,
         });
-        console.log(token);
         res.send({ message: 'Проверка прошла успешно!' });
       })
       .catch(() => {
-        // res.status(401).send({ message: err.message });
         next(new AuthorizationError(AuthorizationError.message));
       });
   }
-  // return res.status(400).send({ message: 'Invalid Email' });
   throw new BadRequestError('Некорректно указан Email');
 };

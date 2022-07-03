@@ -3,14 +3,14 @@ const { isTokenValid } = require('../helpers/jwt');
 const AuthorizationError = require('../errors/auth-err');
 
 module.exports = (req, res, next) => {
-  // достаём авторизационный заголовок
-  const { authorization } = req.headers;
-  // убеждаемся, что он есть или начинается с Bearer
-  if (!authorization || !authorization.startsWith('Bearer ')) {
+  // достаём jwt из кукис
+  const token = req.cookies.jwt;
+  // убеждаемся, что он есть
+  if (!token) {
     // return res.status(401).send({ message: 'Необходима авторизация' });
     throw new AuthorizationError(AuthorizationError.message);
   }
-  const token = authorization.replace('Bearer ', '');
+
   // верифицируем токен
   let payload;
   try {
