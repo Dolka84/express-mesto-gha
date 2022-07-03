@@ -14,13 +14,15 @@ const AuthorizationError = require('../errors/auth-err');
 
 module.exports.getUser = (req, res, next) => {
   User.find({})
-    .then((user) => res.status(200).send({ data: user }))
+    .then((users) => {
+      res.status(200).send({ users });
+    })
     .catch(next);
 };
 
 module.exports.getProfileUser = (req, res, next) => {
-  User.find(req.user._id)
-    .then((user) => res.status(200).send({ data: user }))
+  User.findOne(req.user._id)
+    .then((user) => res.status(200).send({ user }))
     .catch(next);
 };
 
@@ -32,7 +34,7 @@ module.exports.getUserByID = (req, res, next) => {
         // return;
         throw new NotFoundError('Пользователь по указанному _id не найден');
       }
-      res.status(200).send({ data: user });
+      res.status(200).send({ user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -55,11 +57,7 @@ module.exports.createUser = (req, res, next) => {
       .then((hash) => User.create({
         name, about, avatar, email, password: hash,
       }))
-      .then(() => res.status(200).send({
-        data: {
-          name, about, avatar, email,
-        },
-      }))
+      .then((user) => res.status(200).send({ name: user.name, about: user.about, email: user.email, avatar: user.avatar }))
       .catch((err) => {
         if (err.code === 11000) {
           // res.status(MONGO_DUPLICATE.code).send({ message: MONGO_DUPLICATE.message });
