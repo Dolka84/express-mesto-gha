@@ -30,9 +30,6 @@ app.post('/signin', celebrate({
     email: Joi.string().required().email(),
     password: Joi.string().required().min(3),
   }),
-  // query: Joi.object().keys({
-  //   token: Joi.string().token().required(),
-  // }),
 }), login);
 app.post('/signup', celebrate({
   body: Joi.object().keys({

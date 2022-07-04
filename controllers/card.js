@@ -32,8 +32,6 @@ module.exports.deleteCard = (req, res, next) => {
       if (req.user._id.toString() !== card.owner.toString()) {
         throw new ForbiddenError(ForbiddenError.message);
       }
-      console.log('req.user._id', req.user._id);
-      console.log('card.owner', card.owner);
       Card.deleteOne({ card })
         .then(() => {
           res.status(200).send({ message: 'Карточка удалена!' });
