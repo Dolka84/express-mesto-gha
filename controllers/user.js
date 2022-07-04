@@ -8,7 +8,7 @@ require('dotenv').config();
 
 const { SALT_ROUND = 10 } = process.env;
 const BadRequestError = require('../errors/bad-request-err');
-const NotFoundError = require('../errors/bad-request-err');
+const NotFoundError = require('../errors/not-found-err');
 const MongoDuplicateError = require('../errors/mongo-duplicate-error');
 const AuthorizationError = require('../errors/auth-err');
 
@@ -21,7 +21,7 @@ module.exports.getUser = (req, res, next) => {
 };
 
 module.exports.getProfileUser = (req, res, next) => {
-  User.findOne(req.user._id)
+  User.findById(req.user._id)
     .then((user) => res.status(200).send({ user }))
     .catch(next);
 };
@@ -30,20 +30,15 @@ module.exports.getUserByID = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        // res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageUser });
-        // return;
         throw new NotFoundError('Пользователь по указанному _id не найден');
       }
       res.status(200).send({ user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
-        // return;
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+        next(new BadRequestError('Переданы некорректные данные'));
       }
       next(err);
-      // res.status(SOME_ERROR.code).send({ message: SOME_ERROR.message });
     });
 };
 
@@ -62,40 +57,34 @@ module.exports.createUser = (req, res, next) => {
       }))
       .catch((err) => {
         if (err.code === 11000) {
-          // res.status(MONGO_DUPLICATE.code).send({ message: MONGO_DUPLICATE.message });
-          // return;
           next(new MongoDuplicateError(MongoDuplicateError.message));
         }
         if (err.name === 'ValidationError') {
-          // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
-          // return;
           next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
         }
         next(err);
       });
   } else {
-  // res.status(400).send({ message: 'Invalid Email' });
     throw new BadRequestError('Некорректно указан Email');
   }
 };
 
 module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
+
   User.findByIdAndUpdate(
+    req.user._id,
     { name, about },
     { new: true, runValidators: true, upsert: false },
   )
     .then((user) => {
       if (!user) {
-        // res.status(NOT_FOUND.code).send({ message: NOT_FOUND.messageUser });
-        // return;
         throw new NotFoundError('Пользователь по указанному _id не найден');
       }
-      res.status(200).send({ data: user });
+      res.status(200).send({ user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        // res.status(BAD_REQ.code).send({ message: BAD_REQ.messageUser });
         next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
       next(err);
