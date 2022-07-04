@@ -36,10 +36,12 @@ module.exports.getUserByID = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Переданы некорректные данные'));
+        throw new BadRequestError('Переданы некорректные данные');
+      } else {
+        next(err);
       }
-      next(err);
-    });
+    })
+    .catch(next);
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -57,13 +59,15 @@ module.exports.createUser = (req, res, next) => {
       }))
       .catch((err) => {
         if (err.code === 11000) {
-          next(new MongoDuplicateError(MongoDuplicateError.message));
+          throw new MongoDuplicateError(MongoDuplicateError.message);
         }
         if (err.name === 'ValidationError') {
-          next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+          throw new BadRequestError('Переданы некорректные данные при создании пользователя');
+        } else {
+          next(err);
         }
-        next(err);
-      });
+      })
+      .catch(next);
   } else {
     throw new BadRequestError('Некорректно указан Email');
   }
@@ -85,10 +89,12 @@ module.exports.updateUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+        throw new BadRequestError('Переданы некорректные данные при создании пользователя');
+      } else {
+        next(err);
       }
-      next(err);
-    });
+    })
+    .catch(next);
 };
 
 module.exports.updateAvatar = (req, res, next) => {
@@ -106,10 +112,12 @@ module.exports.updateAvatar = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+        throw new BadRequestError('Переданы некорректные данные при создании пользователя');
+      } else {
+        next(err);
       }
-      next(err);
-    });
+    })
+    .catch(next);
 };
 module.exports.login = (req, res, next) => {
   if (validator.isEmail(req.body.email)) {
@@ -124,8 +132,9 @@ module.exports.login = (req, res, next) => {
         res.send({ message: 'Проверка прошла успешно!' });
       })
       .catch(() => {
-        next(new AuthorizationError(AuthorizationError.message));
-      });
+        throw new AuthorizationError(AuthorizationError.message);
+      })
+      .catch(next);
   }
   throw new BadRequestError('Некорректно указан Email');
 };
