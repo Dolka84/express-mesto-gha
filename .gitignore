@@ -16,3 +16,5 @@ npm-debug.log*
 
 # Node environment
 .env
+# файлы с ошибками и запросами к серверу
+*.log

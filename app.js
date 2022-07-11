@@ -8,6 +8,7 @@ const routerCard = require('./routes/card');
 const NotFoundError = require('./errors/not-found-err');
 const { login, createUser } = require('./controllers/user');
 const auth = require('./middlewares/auth');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 require('dotenv').config();
 
 const { PORT = 3000 } = process.env;
@@ -25,6 +26,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   console.log('Connected to MongoDB!!!');
 });
 
+app.use(requestLogger); // подключаем логгер запросов
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
@@ -47,6 +49,7 @@ app.use('/', routerCard);
 app.use('*', () => {
   throw new NotFoundError('Страница не найдена');
 });
+app.use(errorLogger); // подключаем логгер ошибок
 app.use(errors()); // обработчик ошибок celebrate
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
