@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { celebrate, Joi, errors } = require('celebrate');
+const { cors, allowedCors } = require('./middlewares/cors');
 const routerUser = require('./routes/user');
 const routerCard = require('./routes/card');
 const NotFoundError = require('./errors/not-found-err');
@@ -27,6 +28,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 app.use(requestLogger); // подключаем логгер запросов
+app.use('*', cors(allowedCors));
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
